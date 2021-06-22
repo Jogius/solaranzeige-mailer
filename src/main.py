@@ -45,11 +45,11 @@ def main():
   difference = abs(plus - averages['batteryAvg'])
 
   # Logging
-  print(f'--------------------\n\
- - plus: {plus}\n\
- - batteryAvg: {averages["batteryAvg"]}\n\
- --> difference: {difference}\n\
- - socAvg: {averages["socAvg"]}')
+  print(f'--------------------\n'
+    ' - plus: {plus}\n'
+    ' - batteryAvg: {averages["batteryAvg"]}\n'
+    ' --> difference: {difference}\n'
+    ' - socAvg: {averages["socAvg"]}')
   
   # If a certain amount of energy is left over, the battery has less than a certain
   # percentage of power and the difference between this leftover and how much is going
