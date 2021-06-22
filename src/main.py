@@ -20,14 +20,42 @@ def getAverages(client, interval):
     'socAvg': next(result[3].get_points(measurement='Batterie'))['mean']
   }
 
+def handleProblem(averages, plus, difference):
+  pass
+
 def main():
   HOST = environ['DB_HOST']
   PORT = environ['DB_PORT']
   INTERVAL = environ['QUERY_INTERVAL']
+  MIN_PLUS = float(environ['MIN_PLUS'])
+  MAX_DIFFERENCE = float(environ['MAX_DIFFERENCE'])
+  MIN_SOC = float(environ['MIN_SOC'])
 
+  # Create database connection
   client = getDatabaseClient(HOST, PORT)
 
+  # Get averages from the database
   averages = getAverages(client, INTERVAL)
+
+  # Calculate how much energy is generated and not used
+  plus = averages['solarAvg'] - averages['consumptionAvg']
+
+  # Calculate the difference between how much should be going into the battery
+  # and how much is actually going in
+  difference = abs(plus - averages['batteryAvg'])
+
+  # Logging
+  print(f'--------------------\n\
+ - plus: {plus}\n\
+ - batteryAvg: {averages["batteryAvg"]}\n\
+ --> difference: {difference}\n\
+ - socAvg: {averages["socAvg"]}')
+  
+  # If a certain amount of energy is left over, the battery has less than a certain
+  # percentage of power and the difference between this leftover and how much is going
+  # into the battery is too big, call a function to handle the problem case
+  if plus >= MIN_PLUS and averages['socAvg'] <= MIN_SOC and difference > MAX_DIFFERENCE:
+    handleProblem(averages, plus, difference)
 
   client.close()
 
