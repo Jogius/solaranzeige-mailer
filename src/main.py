@@ -64,14 +64,14 @@ def main():
   averages = getAverages(client, INTERVAL)
 
   # Calculate how much energy is generated and not used
-  plus = averages['solarAvg'] - averages['consumptionAvg']
+  excess = averages['solarAvg'] - averages['consumptionAvg']
 
   # Calculate the difference between how much should be going into the battery
   # and how much is actually going in
-  difference = abs(plus - averages['batteryAvg'])
+  difference = excess - averages['batteryAvg']
 
   # String with important data
-  data = f' - plus: {plus}\n - batteryAvg: {averages["batteryAvg"]}\n --> difference: {difference}\n - socAvg: {averages["socAvg"]}'
+  data = f' - excess: {excess}\n - batteryAvg: {averages["batteryAvg"]}\n --> difference: {difference}\n - socAvg: {averages["socAvg"]}'
 
   # Logging
   print(f'------------------------------\n' + data)
@@ -79,8 +79,8 @@ def main():
   # If a certain amount of energy is left over, the battery has less than a certain
   # percentage of power and the difference between this leftover and how much is going
   # into the battery is too big, call a function to handle the problem case
-  if plus >= MIN_PLUS and averages['socAvg'] <= MIN_SOC and difference > MAX_DIFFERENCE:
-    handleProblem(averages, plus, difference, data)
+  if excess >= MIN_PLUS and averages['socAvg'] <= MIN_SOC and difference > MAX_DIFFERENCE:
+    handleProblem(averages, excess, difference, data)
 
   client.close()
 
