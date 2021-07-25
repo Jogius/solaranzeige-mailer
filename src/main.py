@@ -17,10 +17,10 @@ def getAverages(client, interval):
   ''')
 
   return {
-    'consumptionAvg': next(result[0].get_points(measurement='AC'))['mean'],
-    'solarAvg': next(result[1].get_points(measurement='PV'))['mean'],
-    'batteryAvg': -(next(result[2].get_points(measurement='Batterie'))['mean']),
-    'socAvg': next(result[3].get_points(measurement='Batterie'))['mean']
+    'consumptionAvg': round(next(result[0].get_points(measurement='AC'))['mean'], 1),
+    'solarAvg': round(next(result[1].get_points(measurement='PV'))['mean'], 1),
+    'batteryAvg': -(round(next(result[2].get_points(measurement='Batterie'))['mean'], 1)),
+    'socAvg': round(next(result[3].get_points(measurement='Batterie'))['mean'], 1)
   }
 
 def getSMTPConnection(host, port, username, password):
@@ -41,7 +41,7 @@ def handleProblem(averages, plus, difference, data):
   email['From'] = SENDER
   email['To'] = RECIPIENT
   email['Subject'] = SUBJECT
-  email.attach(MIMEText('Sehr geehrte Herr Makowski,\ndie Sonnenbatterie macht wieder Mist, siehe folgende Daten.\n\n' + data + '\n\nLiebe Grüße,\nPython'))
+  email.attach(MIMEText('In den letzten 10 Minuten wurde mehr PV Überschuss erzeugt als in die Batterie geladen, obwohl der SoC unter 96% liegt.\nEin Balancing erscheint erforderlich.\n\n' + data + '\n(Durschnittswerte der letzten 10 Minuten)\n\nGeneriert von solaranzeige-mailer (https://github.com/Jogius/solaranzeige-mailer)\n© Julius Makowski\n'))
 
   mailServer = getSMTPConnection(HOST, PORT, USERNAME, PASSWORD)
 
@@ -64,14 +64,14 @@ def main():
   averages = getAverages(client, INTERVAL)
 
   # Calculate how much energy is generated and not used
-  excess = averages['solarAvg'] - averages['consumptionAvg']
+  excess = round(averages['solarAvg'] - averages['consumptionAvg'], 1)
 
   # Calculate the difference between how much should be going into the battery
   # and how much is actually going in
-  difference = excess - averages['batteryAvg']
+  difference = round(excess - averages['batteryAvg'], 1)
 
   # String with important data
-  data = f' - excess: {excess}\n - batteryAvg: {averages["batteryAvg"]}\n --> difference: {difference}\n - socAvg: {averages["socAvg"]}'
+  data = f' - PV Überschuss: {excess}\n - Ladung der Batterie: {averages["batteryAvg"]}\n --> Differenz: {difference}\n - SoC: {averages["socAvg"]}'
 
   # Logging
   print(f'------------------------------\n' + data)
