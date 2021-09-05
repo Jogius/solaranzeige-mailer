@@ -1,5 +1,7 @@
 from dotenv import load_dotenv
 from os import environ
+from pathlib import Path
+from time import sleep
 from influxdb import InfluxDBClient
 from smtplib import SMTP_SSL as SMTP
 from email.mime.multipart import MIMEMultipart
@@ -28,6 +30,11 @@ def getSMTPConnection(host, port, username, password):
   connection.login(username, password)
   return connection
 
+def lock():
+  LOCK.touch()
+  sleep(environ["EMAIL_INTERVAL"] * 60)
+  LOCK.unlink()
+
 def handleProblem(averages, plus, difference, data):
   HOST = environ['SMTP_HOST']
   PORT = environ['SMTP_PORT']
@@ -48,6 +55,8 @@ def handleProblem(averages, plus, difference, data):
   mailServer.sendmail(SENDER, RECIPIENT, email.as_string())
 
   mailServer.quit()
+
+  lock()
 
 def main():
   HOST = environ['DB_HOST']
@@ -86,4 +95,7 @@ def main():
 
 if __name__ == '__main__':
   load_dotenv()
+  LOCK = Path(environ["EMAIL_LOCK"])
+  if LOCK.exists():
+    exit(0)
   main()
