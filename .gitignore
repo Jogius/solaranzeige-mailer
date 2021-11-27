@@ -130,3 +130,6 @@ dmypy.json
 
 # Visual Studio Code Config
 /.vscode
+
+# lock file
+/solaranzeige-mailer.lock
